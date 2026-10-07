@@ -1,0 +1,44 @@
+{% extends "core/base.html" %}
+{% block title %}সদস্য ব্যবস্থাপনা{% endblock %}
+{% block heading %}সদস্য ব্যবস্থাপনা{% endblock %}
+{% block content %}
+<div class="card">
+  <h3>নতুন সদস্য যোগ করুন</h3>
+  <form method="post">{% csrf_token %}
+    <div class="grid">
+      <div><label for="id_username">ইউজারনেম</label>{{ form.username }}{{ form.username.errors }}</div>
+      <div><label for="id_display_name">নাম</label>{{ form.display_name }}{{ form.display_name.errors }}</div>
+      <div><label for="id_password">পাসওয়ার্ড (কমপক্ষে ৬)</label>{{ form.password }}{{ form.password.errors }}</div>
+      <div><label><input type="checkbox" name="is_admin" id="id_is_admin"> এডমিন</label><button class="btn pri" type="submit">যোগ করুন</button></div>
+    </div>
+  </form>
+</div>
+<div class="card">
+  <h3>সব সদস্য</h3>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>নাম</th><th>ইউজারনেম</th><th>ভূমিকা</th><th>নতুন পাসওয়ার্ড সেট</th><th>অবস্থা</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.first_name|default:u.username }}</td>
+        <td>{{ u.username }}</td>
+        <td><span class="tag">{% if u.is_staff %}এডমিন{% else %}সদস্য{% endif %}</span></td>
+        <td>
+          <form class="inline" method="post" action="{% url 'member_password' u.pk %}">{% csrf_token %}
+            <input type="text" name="password" placeholder="নতুন পাসওয়ার্ড" autocomplete="off" required minlength="6">
+            <button class="btn sm" type="submit">সেট</button>
+          </form>
+        </td>
+        <td>
+          <form method="post" action="{% url 'member_toggle' u.pk %}">{% csrf_token %}
+            <button class="btn sm {% if u.is_active %}dg{% endif %}" type="submit">{% if u.is_active %}বন্ধ করুন{% else %}চালু করুন{% endif %}</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

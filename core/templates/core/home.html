@@ -1,0 +1,16 @@
+{% extends "core/base.html" %}
+{% block content %}
+<div class="card">
+  <h3>সদস্যদের অগ্রগতি</h3>
+  <table>
+    <thead><tr><th>সদস্য</th><th>মোট বিষয়</th><th>সব ধাপ শেষ</th></tr></thead>
+    <tbody>
+    {% for m in members %}
+      <tr><td>{{ m.first_name|default:m.username }}</td><td>{{ m.total }}</td><td>{{ m.finished }}/{{ m.total }}</td></tr>
+    {% empty %}
+      <tr><td colspan="3">কোনো সদস্য নেই।</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

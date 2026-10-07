@@ -1,0 +1,14 @@
+{% extends "core/base.html" %}
+{% block title %}লগইন{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h2>পরীক্ষা বিভাগ — লগইন</h2>
+  <p style="color:var(--mu);margin-top:0">অ্যাকাউন্ট ও পাসওয়ার্ড এডমিন তৈরি করে দেন।</p>
+  <form method="post">{% csrf_token %}
+    {% if form.non_field_errors %}<ul class="err">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+    <p><label for="id_username">ইউজারনেম</label>{{ form.username }}</p>
+    <p><label for="id_password">পাসওয়ার্ড</label>{{ form.password }}</p>
+    <button class="btn pri" type="submit">লগইন</button>
+  </form>
+</div>
+{% endblock %}

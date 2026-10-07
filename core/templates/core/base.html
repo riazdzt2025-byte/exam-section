@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}পরীক্ষা বিভাগ{% endblock %} · PKFSC</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#EBEFF3;--sf:#fff;--sf2:#F3F6F9;--ink:#14202B;--mu:#566473;--ln:#D5DCE4;--ac:#1D4ED8;--aci:#fff;--ok:#17794A;--oks:#DDF3E6;--dg:#B3261E;--dgs:#FBE3E1}
+@media(prefers-color-scheme:dark){:root{--bg:#0E151B;--sf:#16212A;--sf2:#1C2934;--ink:#E6EDF3;--mu:#9AA9B7;--ln:#2B3945;--ac:#7AA2FF;--aci:#0B1220;--ok:#5AD39A;--oks:#12382A;--dg:#FF8A80;--dgs:#3A1B19}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif}
+.app{max-width:1100px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:12px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.top p{margin:0;font-size:12px;color:var(--mu)}h1{margin:0;font-size:24px}h2,h3{margin:0 0 8px}
+.nav{display:flex;gap:6px;flex-wrap:wrap}.nav form{margin:0}
+.btn{display:inline-block;border:1px solid var(--ln);background:var(--sf);color:var(--ink);border-radius:8px;padding:5px 12px;min-height:36px;font:inherit;font-weight:500;font-size:14px;cursor:pointer;text-decoration:none}
+.btn.pri{background:var(--ac);border-color:var(--ac);color:var(--aci)}.btn.dg{color:var(--dg)}.btn.sm{min-height:30px;padding:2px 10px;font-size:13px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:14px}
+input[type=text],input[type=password]{font:inherit;color:inherit;background:var(--sf2);border:1px solid var(--ln);border-radius:8px;padding:6px 10px;min-height:36px;width:100%}
+label{font-size:13px;color:var(--mu);display:block;margin-bottom:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end}
+.msgs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.msgs li{padding:8px 12px;border-radius:8px;background:var(--oks);color:var(--ok)}.msgs li.error{background:var(--dgs);color:var(--dg)}
+.err{color:var(--dg);font-size:13px;margin:2px 0 0;padding:0;list-style:none}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--ln);vertical-align:middle}th{color:var(--mu);font-weight:500;font-size:13px}
+.tag{font-size:12px;padding:1px 8px;border-radius:99px;background:var(--sf2);border:1px solid var(--ln)}
+.inline{display:flex;gap:6px;align-items:center}.inline input{max-width:160px}
+.narrow{max-width:420px;margin:40px auto}
+</style>
+</head>
+<body>
+<div class="app">
+{% if user.is_authenticated %}
+<header class="top">
+  <div><p>পিকেএফএসসি · পরীক্ষা বিভাগ</p><h1>{% block heading %}পরীক্ষার কাজ বণ্টন{% endblock %}</h1></div>
+  <nav class="nav">
+    <a class="btn" href="{% url 'home' %}">ড্যাশবোর্ড</a>
+    {% if user.is_staff %}<a class="btn" href="{% url 'members' %}">সদস্য ব্যবস্থাপনা</a>{% endif %}
+    <a class="btn" href="{% url 'password_change' %}">পাসওয়ার্ড</a>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn dg" type="submit">লগআউট ({{ user.first_name|default:user.username }})</button></form>
+  </nav>
+</header>
+{% endif %}
+{% if messages %}<ul class="msgs">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+{% block content %}{% endblock %}
+</div>
+</body>
+</html>
