@@ -126,3 +126,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+
+# ---------------------------------------------------------------- সার্ভার (প্রোডাকশন) সেটিংস
+# লোকালে কিছু সেট না করলে আগের মতোই (DEBUG চালু) চলবে।
+# সার্ভারে এগুলো এনভায়রনমেন্ট ভ্যারিয়েবল দিয়ে সেট করা হয়।
+import os  # noqa: E402
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", SECRET_KEY)
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
