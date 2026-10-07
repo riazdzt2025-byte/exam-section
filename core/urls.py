@@ -5,6 +5,11 @@ from . import views
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("tasks/", views.tasks, name="tasks"),
+    path("tasks/subjects/<int:pk>/step/<str:field>/", views.subject_step, name="subject_step"),
+    path("tasks/subjects/<int:pk>/delete/", views.subject_delete, name="subject_delete"),
+    path("tasks/todos/<int:pk>/toggle/", views.todo_toggle, name="todo_toggle"),
+    path("tasks/todos/<int:pk>/delete/", views.todo_delete, name="todo_delete"),
     path(
         "login/",
         auth_views.LoginView.as_view(template_name="core/login.html", redirect_authenticated_user=True),

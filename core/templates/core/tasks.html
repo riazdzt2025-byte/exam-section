@@ -1,0 +1,142 @@
+{% extends "core/base.html" %}
+{% block title %}আমার কাজ{% endblock %}
+{% block heading %}আমার কাজ{% endblock %}
+{% block content %}
+<div class="card task-lead">
+  <div>
+    <h3>পরীক্ষার কাজ ও করণীয়</h3>
+    <p>বিষয়ের কাজের অগ্রগতি দেখুন এবং নিজের করণীয় তালিকা হালনাগাদ রাখুন।</p>
+  </div>
+  <span class="tag">{{ todos|length }}টি করণীয়</span>
+</div>
+
+{% if user.is_staff %}
+<div class="card">
+  <div class="task-section-head">
+    <h3>নতুন বিষয় বরাদ্দ</h3>
+    <span class="muted">সদস্য নির্বাচন করে বিষয় যোগ করুন</span>
+  </div>
+  <form method="post" class="task-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_subject">
+    {% for field in subject_form %}
+      <div>
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="err">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn pri" type="submit">বিষয় বরাদ্দ করুন</button>
+  </form>
+  {% for error in subject_form.non_field_errors %}<p class="err">{{ error }}</p>{% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="task-section-head">
+    <h3>{% if user.is_staff %}সকল বরাদ্দকৃত বিষয়{% else %}আমার বরাদ্দকৃত বিষয়{% endif %}</h3>
+    <span class="tag">{{ subjects|length }}টি বিষয়</span>
+  </div>
+  {% if subjects %}
+  <div class="table-scroll">
+    <table class="subject-table">
+      <thead>
+        <tr>
+          {% if user.is_staff %}<th>সদস্য</th>{% endif %}
+          <th>বিষয়</th>
+          <th>জমা</th>
+          <th>টাইপ</th>
+          <th>ফটোকপি</th>
+          <th>অবস্থা</th>
+          {% if user.is_staff %}<th>ব্যবস্থা</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for subject in subjects %}
+        <tr>
+          {% if user.is_staff %}<td>{{ subject.owner.first_name|default:subject.owner.username }}</td>{% endif %}
+          <td class="subject-name">{{ subject.name }}{% if subject.note %}<small>{{ subject.note }}</small>{% endif %}</td>
+          <td>
+            <form class="status-form" method="post" action="{% url 'subject_step' subject.pk 'submitted' %}">
+              {% csrf_token %}<input type="hidden" name="value" value="{% if subject.submitted %}0{% else %}1{% endif %}">
+              <button class="step-button{% if subject.submitted %} is-done{% endif %}" type="submit" aria-pressed="{{ subject.submitted|yesno:'true,false' }}">
+                <span aria-hidden="true">{% if subject.submitted %}✓{% else %}○{% endif %}</span>
+                {% if subject.submitted %}সম্পন্ন{% else %}বাকি{% endif %}
+              </button>
+            </form>
+          </td>
+          <td>
+            <form class="status-form" method="post" action="{% url 'subject_step' subject.pk 'typed' %}">
+              {% csrf_token %}<input type="hidden" name="value" value="{% if subject.typed %}0{% else %}1{% endif %}">
+              <button class="step-button{% if subject.typed %} is-done{% endif %}" type="submit" aria-pressed="{{ subject.typed|yesno:'true,false' }}">
+                <span aria-hidden="true">{% if subject.typed %}✓{% else %}○{% endif %}</span>
+                {% if subject.typed %}সম্পন্ন{% else %}বাকি{% endif %}
+              </button>
+            </form>
+          </td>
+          <td>
+            <form class="status-form" method="post" action="{% url 'subject_step' subject.pk 'photocopied' %}">
+              {% csrf_token %}<input type="hidden" name="value" value="{% if subject.photocopied %}0{% else %}1{% endif %}">
+              <button class="step-button{% if subject.photocopied %} is-done{% endif %}" type="submit" aria-pressed="{{ subject.photocopied|yesno:'true,false' }}">
+                <span aria-hidden="true">{% if subject.photocopied %}✓{% else %}○{% endif %}</span>
+                {% if subject.photocopied %}সম্পন্ন{% else %}বাকি{% endif %}
+              </button>
+            </form>
+          </td>
+          <td>
+            {% if subject.is_done %}<span class="tag">সম্পন্ন</span>{% else %}<span class="tag">চলমান</span>{% endif %}
+          </td>
+          {% if user.is_staff %}
+          <td>
+            <form class="status-form" method="post" action="{% url 'subject_delete' subject.pk %}" onsubmit="return confirm('এই বিষয়টি সরাবেন?');">
+              {% csrf_token %}<button class="btn dg sm" type="submit">সরান</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="muted">{% if user.is_staff %}এখনো কোনো বিষয় বরাদ্দ করা হয়নি।{% else %}আপনার নামে এখনো কোনো বিষয় বরাদ্দ করা হয়নি।{% endif %}</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="task-section-head">
+    <h3>আমার করণীয় তালিকা</h3>
+    <span class="muted">এটি শুধু আপনার অ্যাকাউন্টে দেখা যাবে</span>
+  </div>
+  <form method="post" class="todo-form">
+    {% csrf_token %}<input type="hidden" name="action" value="add_todo">
+    <div>
+      <label for="{{ todo_form.text.id_for_label }}">নতুন করণীয়</label>
+      {{ todo_form.text }}
+      {% for error in todo_form.text.errors %}<p class="err">{{ error }}</p>{% endfor %}
+    </div>
+    <button class="btn pri" type="submit">যোগ করুন</button>
+  </form>
+  {% for error in todo_form.non_field_errors %}<p class="err">{{ error }}</p>{% endfor %}
+  {% if todos %}
+    <ul class="todo-list">
+    {% for todo in todos %}
+      <li class="todo-row">
+        <form class="todo-toggle-form" method="post" action="{% url 'todo_toggle' todo.pk %}">
+          {% csrf_token %}<input type="hidden" name="value" value="{% if todo.done %}0{% else %}1{% endif %}">
+          <button class="todo-check{% if todo.done %} is-done{% endif %}" type="submit" aria-label="{% if todo.done %}অসম্পন্ন করুন{% else %}সম্পন্ন করুন{% endif %}" aria-pressed="{{ todo.done|yesno:'true,false' }}">
+            {% if todo.done %}✓{% else %}○{% endif %}
+          </button>
+        </form>
+        <span class="todo-copy{% if todo.done %} is-done{% endif %}">{{ todo.text }}</span>
+        <form class="todo-delete-form" method="post" action="{% url 'todo_delete' todo.pk %}" onsubmit="return confirm('এই করণীয়টি মুছবেন?');">
+          {% csrf_token %}<button class="btn dg sm" type="submit">মুছুন</button>
+        </form>
+      </li>
+    {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted" style="margin-top:12px">কোনো করণীয় যোগ করা হয়নি।</p>
+  {% endif %}
+</div>
+{% endblock %}
