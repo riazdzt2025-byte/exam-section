@@ -1,16 +1,66 @@
 {% extends "core/base.html" %}
+{% load bn_filters %}
+{% block title %}ড্যাশবোর্ড{% endblock %}
+{% block heading %}ড্যাশবোর্ড{% endblock %}
 {% block content %}
+<div class="print-only">
+  <h2 style="margin:0">{{ exam_title }}</h2>
+  <p style="margin:2px 0 0">তারিখ: {{ today|date:"j F Y"|bn }} · প্রিন্ট করা হয়েছে: {{ user.first_name|default:user.username }}</p>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><b>{{ totals.total|bn }}</b><span>মোট বিষয়</span></div>
+  <div class="kpi"><b class="ok-t">{{ totals.finished|bn }}</b><span>সব ধাপ শেষ</span></div>
+  <div class="kpi"><b>{{ totals.submitted|bn }}</b><span>জমা পড়েছে</span></div>
+  <div class="kpi"><b>{{ totals.typed|bn }}</b><span>টাইপ হয়েছে</span></div>
+  <div class="kpi"><b>{{ totals.photocopied|bn }}</b><span>ফটোকপি হয়েছে</span></div>
+  <div class="kpi"><b>{{ totals.percent|bn }}%</b><span>সামগ্রিক অগ্রগতি</span></div>
+</div>
+
 <div class="card">
-  <h3>সদস্যদের অগ্রগতি</h3>
+  <div class="member-head">
+    <h3>সদস্যভিত্তিক সারাংশ</h3>
+    <button class="btn no-print" type="button" onclick="window.print()">🖨 প্রিন্ট করুন</button>
+  </div>
+  <div style="overflow-x:auto">
   <table>
-    <thead><tr><th>সদস্য</th><th>মোট বিষয়</th><th>সব ধাপ শেষ</th></tr></thead>
+    <thead><tr><th>সদস্য</th><th>মোট বিষয়</th><th>জমা</th><th>টাইপ</th><th>ফটোকপি</th><th>সব ধাপ শেষ</th></tr></thead>
     <tbody>
     {% for m in members %}
-      <tr><td>{{ m.first_name|default:m.username }}</td><td>{{ m.total }}</td><td>{{ m.finished }}/{{ m.total }}</td></tr>
+      <tr>
+        <td>{{ m.first_name|default:m.username }}</td>
+        <td>{{ m.total|bn }}</td>
+        <td>{{ m.submitted_n|bn }}</td>
+        <td>{{ m.typed_n|bn }}</td>
+        <td>{{ m.photocopied_n|bn }}</td>
+        <td><span class="tag {% if m.finished == m.total and m.total > 0 %}ok{% endif %}">{{ m.finished|bn }}/{{ m.total|bn }}</span></td>
+      </tr>
     {% empty %}
-      <tr><td colspan="3">কোনো সদস্য নেই।</td></tr>
+      <tr><td colspan="6">কোনো সদস্য নেই।</td></tr>
     {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
+
+<div class="card">
+  <div class="member-head">
+    <h3>প্রতিবেদন (সাংখ্যিক)</h3>
+    <button class="btn pri no-print" type="button" onclick="copyReport()">📋 কপি করুন</button>
+  </div>
+  <textarea id="report-text" class="report" readonly>{{ report }}</textarea>
+  <p id="copy-note" class="mu-t" style="font-size:13px;margin:6px 0 0"></p>
+</div>
+
+<script>
+function copyReport(){
+  var el = document.getElementById('report-text');
+  var note = document.getElementById('copy-note');
+  function ok(){ note.textContent = 'প্রতিবেদন কপি হয়েছে ✓'; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(el.value).then(ok).catch(function(){ fallback(); });
+  } else { fallback(); }
+  function fallback(){ el.select(); document.execCommand('copy'); ok(); }
+}
+</script>
 {% endblock %}

@@ -1,0 +1,65 @@
+{% extends "core/base.html" %}
+{% load bn_filters %}
+{% block title %}দৈনিক প্রতিবেদন{% endblock %}
+{% block heading %}দৈনিক প্রতিবেদন{% endblock %}
+{% block content %}
+<div class="card no-print">
+  <form method="get" class="grid" style="grid-template-columns:1fr auto auto">
+    <div><label for="id_date">তারিখ নির্বাচন করুন</label><input type="date" name="date" id="id_date" value="{{ day_iso }}"></div>
+    <div><button class="btn pri" type="submit">দেখুন</button></div>
+    <div><button class="btn" type="button" onclick="window.print()">🖨 প্রিন্ট করুন</button></div>
+  </form>
+</div>
+
+<div class="print-only">
+  <h2 style="margin:0">{{ exam_title }} — দৈনিক প্রতিবেদন</h2>
+  <p style="margin:2px 0 0">তারিখ: {{ day|date:"j F Y"|bn }}</p>
+</div>
+
+<div class="card">
+  <div class="member-head">
+    <h3>{{ day|date:"j F Y"|bn }} {% if is_today %}<span class="tag active">আজ</span>{% endif %}</h3>
+    <button class="btn pri no-print" type="button" onclick="copyReport()">📋 কপি করুন</button>
+  </div>
+
+  <div class="kpis" style="margin-bottom:12px">
+    <div class="kpi"><b>{{ totals.total|bn }}</b><span>মোট কার্যক্রম</span></div>
+    <div class="kpi"><b>{{ totals.subject_add|bn }}</b><span>নতুন বিষয়</span></div>
+    <div class="kpi"><b>{{ totals.subject_status|bn }}</b><span>অবস্থা পরিবর্তন</span></div>
+    <div class="kpi"><b>{{ totals.subject_delete|bn }}</b><span>বিষয় মুছে ফেলা</span></div>
+    <div class="kpi"><b>{{ totals.todo|bn }}</b><span>করণীয় হালনাগাদ</span></div>
+  </div>
+
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>সময়</th><th>সদস্য</th><th>ধরন</th><th>বিবরণ</th></tr></thead>
+    <tbody>
+    {% for a in activities %}
+      <tr>
+        <td class="mu-t">{{ a.created|date:"h:i A"|bn }}</td>
+        <td>{{ a.owner.first_name|default:a.owner.username }}</td>
+        <td><span class="tag">{{ a.get_kind_display }}</span></td>
+        <td>{{ a.text }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4" class="mu-t">এই তারিখে কোনো কার্যক্রম পাওয়া যায়নি।</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card no-print">
+  <h3>প্রতিবেদন (সাংখ্যিক)</h3>
+  <textarea id="report-text" class="report" readonly>{{ text_report }}</textarea>
+</div>
+
+<script>
+function copyReport(){
+  var el = document.getElementById('report-text');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(el.value);
+  } else { el.select(); document.execCommand('copy'); }
+}
+</script>
+{% endblock %}
