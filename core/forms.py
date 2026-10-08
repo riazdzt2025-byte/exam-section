@@ -34,3 +34,44 @@ class MemberCreateForm(forms.Form):
 
 class SetMemberPasswordForm(forms.Form):
     password = forms.CharField(min_length=6)
+
+
+class SubjectForm(forms.Form):
+    name = forms.CharField(label="বিষয়ের নাম", max_length=120)
+    note = forms.CharField(label="নোট", max_length=200, required=False)
+
+    def clean_name(self):
+        name = self.cleaned_data["name"].strip()
+        if not name:
+            raise forms.ValidationError("বিষয়ের নাম লিখুন।")
+        return name
+
+
+class TodoForm(forms.Form):
+    text = forms.CharField(label="করণীয়", max_length=250)
+
+    def clean_text(self):
+        text = self.cleaned_data["text"].strip()
+        if not text:
+            raise forms.ValidationError("করণীয় লিখুন।")
+        return text
+
+
+class ExcelImportForm(forms.Form):
+    file = forms.FileField(label="এক্সেল ফাইল (.xlsx)")
+
+    def clean_file(self):
+        f = self.cleaned_data["file"]
+        if not f.name.lower().endswith(".xlsx"):
+            raise forms.ValidationError("শুধু .xlsx ফাইল গ্রহণ করা হয়।")
+        return f
+
+
+class SettingsForm(forms.Form):
+    exam_title = forms.CharField(label="প্রতিবেদনের শিরোনাম", max_length=200)
+
+    def clean_exam_title(self):
+        value = self.cleaned_data["exam_title"].strip()
+        if not value:
+            raise forms.ValidationError("শিরোনাম খালি রাখা যাবে না।")
+        return value

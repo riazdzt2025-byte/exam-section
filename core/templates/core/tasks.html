@@ -1,0 +1,119 @@
+{% extends "core/base.html" %}
+{% load bn_filters %}
+{% block title %}সদস্যদের কাজ{% endblock %}
+{% block heading %}সদস্যদের কাজ{% endblock %}
+{% block content %}
+<div class="card filter-bar no-print">
+  <span class="mu-t" style="font-size:13px">ফিল্টার:</span>
+  <a class="tag {% if filter == 'all' %}active{% endif %}" href="{% url 'tasks' %}">সব</a>
+  <a class="tag {% if filter == 'pending' %}active{% endif %}" href="{% url 'tasks' %}?filter=pending">বাকি আছে</a>
+  <a class="tag {% if filter == 'done' %}active{% endif %}" href="{% url 'tasks' %}?filter=done">সম্পন্ন</a>
+  <span style="flex:1"></span>
+  <button class="btn" type="button" onclick="window.print()">🖨 প্রিন্ট করুন</button>
+</div>
+<div class="print-only">
+  <h2 style="margin:0">সদস্যদের কাজ — অগ্রগতি</h2>
+  <p style="margin:2px 0 0">ফিল্টার: {% if filter == 'pending' %}বাকি আছে{% elif filter == 'done' %}সম্পন্ন{% else %}সব{% endif %}</p>
+</div>
+
+{% for card in cards %}
+<div class="card">
+  <div class="member-head">
+    <h3>{{ card.name }}{% if card.member.is_staff %} <span class="tag">এডমিন</span>{% endif %}</h3>
+    <span class="tag {% if card.finished == card.total and card.total > 0 %}ok{% endif %}">সম্পন্ন {{ card.finished|bn }}/{{ card.total|bn }}</span>
+  </div>
+
+  <div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr>
+        <th>বিষয়</th><th>জমা</th><th>টাইপ</th><th>ফটোকপি</th><th>নোট</th>
+        {% if card.can_edit %}<th class="no-print"></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+    {% for s in card.subjects %}
+      <tr>
+        <td>{{ s.name }}</td>
+        {% for f in fields %}
+        <td>
+          {% if card.can_edit %}
+          <form class="check-form" method="post" action="{% url 'subject_toggle' s.pk f %}">
+            {% csrf_token %}
+            <input type="hidden" name="filter" value="{{ filter }}">
+            <input type="checkbox" {% if f == 'submitted' and s.submitted or f == 'typed' and s.typed or f == 'photocopied' and s.photocopied %}checked{% endif %} onchange="this.form.submit()" aria-label="{{ s.name }} {{ f }}">
+          </form>
+          {% else %}
+            {% if f == 'submitted' and s.submitted or f == 'typed' and s.typed or f == 'photocopied' and s.photocopied %}<span class="ok-t">✓</span>{% else %}<span class="mu-t">—</span>{% endif %}
+          {% endif %}
+        </td>
+        {% endfor %}
+        <td class="mu-t">{{ s.note|default:"—" }}</td>
+        {% if card.can_edit %}
+        <td class="no-print">
+          <form method="post" action="{% url 'subject_delete' s.pk %}" onsubmit="return confirm('বিষয়টি মুছে ফেলবেন?')">
+            {% csrf_token %}
+            <input type="hidden" name="filter" value="{{ filter }}">
+            <button class="btn sm dg" type="submit">মুছুন</button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+    {% empty %}
+      <tr><td colspan="{% if card.can_edit %}6{% else %}5{% endif %}" class="mu-t">এই ফিল্টারে কোনো বিষয় নেই।</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  {% if card.can_edit %}
+  <form class="no-print" method="post" action="{% url 'subject_add' card.member.pk %}" style="margin-top:10px">
+    {% csrf_token %}
+    <input type="hidden" name="filter" value="{{ filter }}">
+    <div class="grid" style="grid-template-columns:2fr 2fr auto">
+      <div><label>নতুন বিষয়</label><input type="text" name="name" maxlength="120" placeholder="যেমন: বাংলা ১ম পত্র" required></div>
+      <div><label>নোট (ঐচ্ছিক)</label><input type="text" name="note" maxlength="200" placeholder="সেমিস্টার / নির্দেশনা"></div>
+      <div><button class="btn pri" type="submit">বিষয় যোগ করুন</button></div>
+    </div>
+  </form>
+  {% endif %}
+
+  <div style="margin-top:12px">
+    <h4 style="margin:0 0 4px;font-size:14px;color:var(--mu)">করণীয় তালিকা</h4>
+    <ul class="todo-list">
+      {% for t in card.todos %}
+      <li>
+        {% if card.can_edit %}
+        <form method="post" action="{% url 'todo_toggle' t.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="filter" value="{{ filter }}">
+          <input type="checkbox" {% if t.done %}checked{% endif %} onchange="this.form.submit()" aria-label="{{ t.text }}">
+        </form>
+        {% else %}
+          {% if t.done %}<span class="ok-t">✓</span>{% else %}<span class="mu-t">○</span>{% endif %}
+        {% endif %}
+        <span style="{% if t.done %}text-decoration:line-through;color:var(--mu){% endif %}">{{ t.text }}</span>
+        {% if card.can_edit %}
+        <form class="no-print" method="post" action="{% url 'todo_delete' t.pk %}" onsubmit="return confirm('মুছে ফেলবেন?')">
+          {% csrf_token %}
+          <input type="hidden" name="filter" value="{{ filter }}">
+          <button class="btn sm dg" type="submit">✕</button>
+        </form>
+        {% endif %}
+      </li>
+      {% empty %}
+      <li class="mu-t">কোনো করণীয় নেই।</li>
+      {% endfor %}
+    </ul>
+    {% if card.can_edit %}
+    <form class="inline no-print" method="post" action="{% url 'todo_add' card.member.pk %}" style="margin-top:8px">
+      {% csrf_token %}
+      <input type="hidden" name="filter" value="{{ filter }}">
+      <input type="text" name="text" maxlength="250" placeholder="নতুন করণীয় লিখুন" required>
+      <button class="btn sm" type="submit">যোগ করুন</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

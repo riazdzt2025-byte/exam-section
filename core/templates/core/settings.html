@@ -1,0 +1,17 @@
+{% extends "core/base.html" %}
+{% block title %}সেটিংস{% endblock %}
+{% block heading %}সেটিংস{% endblock %}
+{% block content %}
+<div class="card narrow" style="max-width:560px">
+  <h3>সাধারণ সেটিংস</h3>
+  <p class="mu-t" style="margin-top:0;font-size:13px">এই শিরোনামটি ড্যাশবোর্ড ও দৈনিক প্রতিবেদনের প্রিন্ট/কপি আউটপুটে ব্যবহৃত হয়।</p>
+  <form method="post">{% csrf_token %}
+    <p>
+      <label for="id_exam_title">{{ form.exam_title.label }}</label>
+      {{ form.exam_title }}
+      {% if form.exam_title.errors %}<ul class="err">{% for e in form.exam_title.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+    </p>
+    <button class="btn pri" type="submit">সংরক্ষণ করুন</button>
+  </form>
+</div>
+{% endblock %}

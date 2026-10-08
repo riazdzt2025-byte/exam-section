@@ -1,0 +1,36 @@
+{% extends "core/base.html" %}
+{% load bn_filters %}
+{% block title %}এক্সেল{% endblock %}
+{% block heading %}এক্সেল আমদানি / রপ্তানি{% endblock %}
+{% block content %}
+<div class="card">
+  <h3>রপ্তানি (এক্সপোর্ট)</h3>
+  <p class="mu-t" style="margin-top:0">সব বিষয় ও করণীয় তালিকা এক্সেল ফাইলে (.xlsx) ডাউনলোড হবে — দুইটি শিট: Subjects ও Todos।</p>
+  <a class="btn pri" href="{% url 'excel_export' %}">⬇ এক্সপোর্ট করুন</a>
+  {% if user.is_staff %}
+  <a class="btn" href="{% url 'excel_template' %}" style="margin-left:6px">⬇ ফাঁকা টেমপ্লেট</a>
+  {% endif %}
+</div>
+
+{% if user.is_staff %}
+<div class="card">
+  <h3>আমদানি (ইমপোর্ট)</h3>
+  <p class="mu-t" style="margin-top:0">
+    Subjects শিটে কলাম: <b>username, subject, note, submitted, typed, photocopied</b> (yes/no)।
+    একই ইউজারনেম + বিষয়ের নাম থাকলে হালনাগাদ হবে, না থাকলে নতুন যোগ হবে।
+    অজানা ইউজারনেম বা খালি সারি বাদ পড়বে। শুধু এডমিন আমদানি করতে পারবেন।
+  </p>
+  <form method="post" action="{% url 'excel_import' %}" enctype="multipart/form-data">{% csrf_token %}
+    <div class="grid" style="grid-template-columns:2fr auto">
+      <div><label for="id_file">এক্সেল ফাইল (.xlsx)</label><input type="file" name="file" id="id_file" accept=".xlsx" required style="width:100%"></div>
+      <div><button class="btn pri" type="submit">⬆ আমদানি করুন</button></div>
+    </div>
+    {% if import_form.file.errors %}<ul class="err">{% for e in import_form.file.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  </form>
+</div>
+{% else %}
+<div class="card">
+  <p class="mu-t" style="margin:0">আমদানি (ইমপোর্ট) শুধু এডমিন করতে পারেন।</p>
+</div>
+{% endif %}
+{% endblock %}
